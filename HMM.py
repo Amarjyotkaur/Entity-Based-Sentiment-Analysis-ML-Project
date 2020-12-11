@@ -111,7 +111,6 @@ class HMM(object):
         for line in open(test_file, "r"):
             if line != "\n":
                 x = line.strip()
-                print(x)
                 f.write("{0} {1}\n".format(x, self.get_tag(x)))
             else: 
                 f.write(line)
@@ -208,83 +207,89 @@ class HMM(object):
                         pi[currState][position] = max(arr)
                         parent[currState][position] = np.argmax(arr)
     
-    # #TODO this does not look right
-    # def evaluate(self, pred_file, actual_file):
-    #     y_pred = []
-    #     y_actual = []
-    #     for line in open(actual_file, "r"):
-    #         if line != "\n":
-    #             x, y = line.strip().split(" ")
-    #             y_actual.append(y)
-    #     for line in open(pred_file, "r"):
-    #         y_pred = []
-    #         if line != "\n":
-    #             x, y = line.strip().split(" ")
-    #             y_pred.append(y)
-    #     confusion_matrix = [[0 for i in self.stateSet] for i in self.stateSet] 
-    #     for i in range(len(y_pred)):
-    #         pred_index = self.stateSet.index(y_pred[i])
-    #         actual_index = self.stateSet.index(y_actual[i])
-    #         confusion_matrix[actual_index][pred_index] += 1
+    #TODO this does not look right
+    # ignore hashtags 
+    # two metrics: entity and sentiment 
+    #so basically the confusion matrix will be 2x2 yay now correct liao 
+    def evaluate2(self, pred_file, actual_file):
         
-    #     true_positive = [confusion_matrix[i][i] for i in range(len(self.stateSet))]
-    #     false_positive = [0 for i in range(len(self.stateSet))]
-    #     false_negative = [0 for i in range(len(self.stateSet))]
-    #     precision = recall = [0 for i in range(len(self.stateSet))]
-
-    #     for correct in range(len(self.stateSet)):
-    #         for i in range(len(self.stateSet)):
-    #             if i != correct: 
-    #                 false_positive[correct] += confusion_matrix[i][correct]
+        pass
+    def evaluate(self, pred_file, actual_file):
+        y_pred = []
+        y_actual = []
+        for line in open(actual_file, "r"):
+            if line != "\n":
+                x, y = line.strip().split(" ")
+                y_actual.append(y)
+        for line in open(pred_file, "r"):
+            y_pred = []
+            if line != "\n":
+                x, y = line.strip().split(" ")
+                y_pred.append(y)
+        confusion_matrix = [[0 for i in self.stateSet] for i in self.stateSet] 
+        for i in range(len(y_pred)):
+            pred_index = self.stateSet.index(y_pred[i])
+            actual_index = self.stateSet.index(y_actual[i])
+            confusion_matrix[actual_index][pred_index] += 1
         
-    #     for correct in range(len(self.stateSet)):
-    #         for i in range(len(self.stateSet)):
-    #             if i != correct: 
-    #                 false_negative[correct] += confusion_matrix[correct][i]
+        true_positive = [confusion_matrix[i][i] for i in range(len(self.stateSet))]
+        false_positive = [0 for i in range(len(self.stateSet))]
+        false_negative = [0 for i in range(len(self.stateSet))]
+        precision = recall = [0 for i in range(len(self.stateSet))]
 
-
-    #     for i in range(len(true_positive)):
-    #         if (true_positive[i] + false_positive[i]) == 0: 
-    #             precision[i] = 0
-    #         else: 
-    #             try: 
-    #                 precision[i] = true_positive[i]/(true_positive[i] + false_positive[i])
-    #             except ZeroDivisionError: 
-    #                 precision[i] = 0
-    #     precision = sum(precision)
-
-    #     for i in range(len(true_positive)):
-    #         if (true_positive[i] + false_negative[i]) == 0: 
-    #             recall[i] = 0
-    #         else: 
-    #             try: 
-    #                 recall[i] = true_positive[i]/(true_positive[i] + false_negative[i])
-    #             except ZeroDivisionError: 
-    #                 recall[i] = 0
-    #     recall = sum(recall)
+        for correct in range(len(self.stateSet)):
+            for i in range(len(self.stateSet)):
+                if i != correct: 
+                    false_positive[correct] += confusion_matrix[i][correct]
         
-    #     # f1 = 2/((1/precision) + 1/recall)
-    #     print("Precision: ", precision)
-    #     print("Recall: ", recall)
-    #     # print("F1 score: ", f1)
-    #     print(confusion_matrix[3])
+        for correct in range(len(self.stateSet)):
+            for i in range(len(self.stateSet)):
+                if i != correct: 
+                    false_negative[correct] += confusion_matrix[correct][i]
+
+
+        for i in range(len(true_positive)):
+            if (true_positive[i] + false_positive[i]) == 0: 
+                precision[i] = 0
+            else: 
+                try: 
+                    precision[i] = true_positive[i]/(true_positive[i] + false_positive[i])
+                except ZeroDivisionError: 
+                    precision[i] = 0
+        precision = sum(precision)
+
+        for i in range(len(true_positive)):
+            if (true_positive[i] + false_negative[i]) == 0: 
+                recall[i] = 0
+            else: 
+                try: 
+                    recall[i] = true_positive[i]/(true_positive[i] + false_negative[i])
+                except ZeroDivisionError: 
+                    recall[i] = 0
+        recall = sum(recall)
+        
+        # f1 = 2/((1/precision) + 1/recall)
+        print("Precision: ", precision)
+        print("Recall: ", recall)
+        # print("F1 score: ", f1)
+        print(confusion_matrix[3])
 
 
 
 
 model = HMM()
 #initialise self.stateSet and self.obsSet
-model.readfile('./SG/train')
+model.readfile('./CN/train')
 #initialise self.trainObs and self.trainStates
-model.fileToSentence('./SG/train')
-model.improved_estimate_b('./SG/train')
+model.fileToSentence('./CN/train')
+model.improved_estimate_b('./CN/train')
 
-print("Observation set: {0}\n".format(model.obsSet))
-print("State set: {0}\n".format(model.stateSet))
+# print("Observation set: {0}\n".format(model.obsSet))
+# print("State set: {0}\n".format(model.stateSet))
 # print("Train Obs: {0}\n".format(model.trainObs))
 # print("Train States: {0}\n".format(model.trainStates))
-print("b value: {0}\n".format(model.b))
-model.predict('./SG/dev.in')
+# print("b value: {0}\n".format(model.b))
+model.predict('./CN/dev.in')
 # model.get_tag("HBO")
 
 

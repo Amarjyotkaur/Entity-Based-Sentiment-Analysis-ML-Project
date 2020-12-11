@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy as np 
 
 class MultiClassPerceptron(object):
@@ -40,25 +41,29 @@ class MultiClassPerceptron(object):
         if len(self.x_train) != len(self.y_train):
             raise ValueError('x_train and y_train have different shape!')
         
-        for i in range(len(self.x_train)): 
-            #get the one-hot encoding of each x 
-            x_i = self.x_train[i]
-            x_index = self.uniqueWords.index(x_i)
-            x_vector = self.getOneHotEncoding(x_index)
-            #getting the maximum y for all possible classes. the classifier is linear regression, me lazy to add offset 
-            y_pred_val = [np.dot(self.theta[j], x_vector) for j in range(len(self.uniqueClasses))] #this should be a scalar? 
-            max_y_index = y_pred_val.index(max(y_pred_val)) 
+        for n in n_epochs: 
+            for i in range(len(self.x_train)): 
+                print('Line {0}\n'.format(i))
+                #get the one-hot encoding of each x 
+                x_i = self.x_train[i]
+                x_index = self.uniqueWords.index(x_i)
+                x_vector = self.getOneHotEncoding(x_index)
+                #getting the maximum y for all possible classes
+                y_pred_val = [np.dot(self.theta[j], x_vector) for j in range(len(self.uniqueClasses))]
+                max_y_index = y_pred_val.index(max(y_pred_val)) 
 
-            #if prediction is wrong, update the weights 
-            if self.uniqueClasses[max_y_index] != self.y_train[i]:
-                #subtract weights of the predicted y 
-                self.theta[max_y_index] = np.subtract(self.theta[max_y_index], x_vector) #lol me thinks is wrong
-                #add weights of the correct y 
-                actual_y_index = self.uniqueClasses.index(self.y_train[i])
-                self.theta[actual_y_index] = np.add(self.theta[actual_y_index], x_vector)
+                #if prediction is wrong, update the weights 
+                if self.uniqueClasses[max_y_index] != self.y_train[i]:
+                    #subtract weights of the predicted y 
+                    print('Original w*', self.theta[max_y_index])
+                    self.theta[max_y_index] = np.subtract(self.theta[max_y_index], x_vector) 
+                    print('new w*', self.theta[max_y_index])
+                    #add weights of the correct y 
+                    actual_y_index = self.uniqueClasses.index(self.y_train[i])
+                    self.theta[actual_y_index] = np.add(self.theta[actual_y_index], x_vector)
     
     def predict(self, test_file):
-        f = open('dev.p2.out', 'w')
+        f = open('dev.p3.out', 'w')
         for line in open(test_file, 'r'):
             if line != '\n':
                 x_test = line.strip()
@@ -69,32 +74,20 @@ class MultiClassPerceptron(object):
                 
                 x_vector = self.getOneHotEncoding(x_index)
 
-                y_pred_val = [np.dot(self.theta[j], x_vector) for j in range(len(self.uniqueClasses))] #this should be a scalar? 
-                argmax_y = y_pred_val.index(max(y_pred_val)) 
+                y_pred_val = [np.dot(self.theta[j], x_vector) for j in range(len(self.uniqueClasses))] 
+                max_y_index = y_pred_val.index(max(y_pred_val))
+                argmax_y = self.uniqueClasses[max_y_index] 
                 f.write("{0} {1}\n".format(x_test, argmax_y))
             else: 
                 f.write(line)
         f.close()
-
-    # def getSentenceList(self, train_file):
-    #     s = []
-    #     for line in open(train_file, "r"):
-    #         if line != '\n':
-    #             x, y = line.strip().split(' ')
-    #             s.append(x)
-    #         else:
-    #             self.sentences.append(s)
-    #             s = []
-    #     return 
-
-    # #use one hot encoding
-    # def vectorise(self, sentence):
-    #     #for each sentence
-    #     
     
+start = datetime.now()
 model = MultiClassPerceptron()
 model.readTrainFile('./SG/train')
 print('initialised!')
 model.train(1)
 print('trained!')
 model.predict('./SG/dev.in')
+end = datetime.now()
+print('Time: ', (end-start).total_seconds())
