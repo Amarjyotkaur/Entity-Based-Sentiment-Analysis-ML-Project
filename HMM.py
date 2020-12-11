@@ -227,7 +227,6 @@ class HMM(object):
 
                 if k == 1:
                     optimalStatels, obsPerSentence = self.viterbi(obsPerSentence)
-                    return 
                     # print('optimalStatels',optimalStatels)
                     # print('obsPerSentence', obsPerSentence)
                 else: 
