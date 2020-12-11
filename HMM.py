@@ -103,7 +103,7 @@ class HMM(object):
         self.b = output
         return self.b 
 
-    def viterbi(self):
+    def viterbi(self, obsPerSentence):
 
         numPositions = len(obsPerSentence)
         numStates = len(self.stateSet)
@@ -122,14 +122,14 @@ class HMM(object):
             for currState in range(numStates):
                 arr = np.array([])
                 for prevState in range(numStates):
-                    arr.append(pi[prevState][position-1] * self.a[prevState][currState] * self.b[obsIndex][currState])
+                    arr = np.append(arr, pi[prevState][position-1] * self.a[prevState][currState] * self.b[obsIndex][currState])
                 pi[currState][position] = np.max(arr)
                 parent[currState][position] = np.argmax(arr)
         
         stop_index = self.stateSet.index("STOP")
         arr = np.array([])
         for pS in range(numStates):
-            arr.append(pi[pS][numPositions-2] * self.a[pS][stop_index]) 
+            arr = np.append(arr, pi[pS][numPositions-2] * self.a[pS][stop_index]) 
         pi[stop_index][numPositions-1] = np.max(arr)
         parent[stop_index][numPositions-1] = np.argmax(arr)
 
@@ -138,14 +138,14 @@ class HMM(object):
         optimalStatels = []
         for p in range(numPositions-1, 2, -1):
             optimalStateIndex = parent[optimalStateIndex][p]
-            optimalStatels.append(self.stateSet.index(optimalStateIndex))
+            optimalStatels.append(self.stateSet[optimalStateIndex])
         
-        optimalStatels = optimalStatels.reverse()
+        optimalStatels.reverse()
         obsPerSentence = obsPerSentence[1:-1]
 
         return optimalStatels, obsPerSentence
 
-    def viterbi_top_k(self, k):
+    def viterbi_top_k(self, k, obsPerSentence):
 
         numPositions = len(obsPerSentence)
         numStates = len(self.stateSet)
@@ -190,9 +190,9 @@ class HMM(object):
         optimalStatels = []
         for p in range(numPositions-1, 2, -1):
             optimalStateIndex, optimalKValueIndex = parent[p][optimalStateIndex][optimalKValueIndex]
-            optimalStatels.append(self.stateSet.index(optimalStateIndex))
+            optimalStatels.append(self.stateSet[optimalStateIndex])
 
-        optimalStatels = optimalStatels.reverse()
+        optimalStatels.reverse()
         obsPerSentence = obsPerSentence[1:-1]
 
         return optimalStatels, obsPerSentence
@@ -211,11 +211,11 @@ class HMM(object):
                 obsPerSentence.append('-1')
 
                 if k == 1:
-                    optimalStatels, obsPerSentence = self.viterbi()
+                    optimalStatels, obsPerSentence = self.viterbi(obsPerSentence)
                     print('optimalStatels',optimalStatels)
                     print('obsPerSentence', obsPerSentence)
                 else: 
-                    optimalStatels, obsPerSentence = self.viterbi_top_k(k)
+                    optimalStatels, obsPerSentence = self.viterbi_top_k(obsPerSentence, k)
                 
                 
                 for s, ob in zip(optimalStatels, obsPerSentence):
@@ -249,10 +249,11 @@ model.fileToSentence('EN/train')
 
 # initialise self.a and self.b 
 model.estimate_a('EN/train')
-print(model.a[:4][:4])
+# print('a', model.a[:4][:4])
 model.improved_estimate_b('EN/train')
-print(model.b[:4][:4])
+# print('b', model.b[:4][:4])
 
 model.predictGlobal('EN/dev.in', 1)
+
 
     
