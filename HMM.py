@@ -36,6 +36,9 @@ class HMM(object):
                 self.trainStates.append(statesPerSentence)
                 obsPerSentence = []
                 statesPerSentence = []
+        
+        self.trainObs.append(obsPerSentence)
+        self.trainStates.append(statesPerSentence)
         return 
 
     def estimate_a(self, file):
@@ -48,6 +51,8 @@ class HMM(object):
             for element in list(zip(sentence, sentence[1:])): 
                 lsOfCurrNextStates.append(element)
         
+        # print('lsOfCurrNextStates', lsOfCurrNextStates)
+        
         countCurrNext = [[0 for i in range(len(self.stateSet))] for i in range(len(self.stateSet))]
         countCurr = [0 for i in range(len(self.stateSet))]
 
@@ -57,12 +62,17 @@ class HMM(object):
             countCurrNext[currIndex][nexIndex] += 1
             countCurr[currIndex] += 1
         
+        # print('countCurr', countCurr)
+        # print('countCurrNext before', countCurrNext)
+
         for i in range(len(self.stateSet)):
             for j in range(len(self.stateSet)):
                 if countCurr[i] == 0:
                     countCurrNext[i][j] = 0 
                 else: 
                     countCurrNext[i][j] = countCurrNext[i][j]/countCurr[i]
+        
+        # print('countCurrNext after', countCurrNext)
         
         self.a = countCurrNext
         
@@ -122,7 +132,12 @@ class HMM(object):
             for currState in range(numStates):
                 arr = np.array([])
                 for prevState in range(numStates):
+                    print(prevState)
+                    print('pi', pi[prevState][position-1])
+                    print('a', self.a[prevState][currState])
+                    print('b', self.b[obsIndex][currState])
                     arr = np.append(arr, pi[prevState][position-1] * self.a[prevState][currState] * self.b[obsIndex][currState])
+                    print('arr', arr)
                 pi[currState][position] = np.max(arr)
                 parent[currState][position] = np.argmax(arr)
         
@@ -212,15 +227,16 @@ class HMM(object):
 
                 if k == 1:
                     optimalStatels, obsPerSentence = self.viterbi(obsPerSentence)
-                    print('optimalStatels',optimalStatels)
-                    print('obsPerSentence', obsPerSentence)
+                    return 
+                    # print('optimalStatels',optimalStatels)
+                    # print('obsPerSentence', obsPerSentence)
                 else: 
                     optimalStatels, obsPerSentence = self.viterbi_top_k(obsPerSentence, k)
                 
                 
                 for s, ob in zip(optimalStatels, obsPerSentence):
                     f.write("{0} {1}\n".format(ob, s))
-                    f.write("\n")
+                f.write("\n")
                 
                 obsPerSentence = ['0']
 
@@ -249,11 +265,20 @@ model.fileToSentence('EN/train')
 
 # initialise self.a and self.b 
 model.estimate_a('EN/train')
-# print('a', model.a[:4][:4])
 model.improved_estimate_b('EN/train')
-# print('b', model.b[:4][:4])
 
 model.predictGlobal('EN/dev.in', 1)
+
+# model = HMM()
+# #initialise self.stateSet and self.obsSet
+# model.readfile('EN/test')
+# # print('stateSet', model.stateSet)
+# #initialise self.trainObs and self.trainStates
+# model.fileToSentence('EN/test')
+
+# # initialise self.a and self.b 
+# model.estimate_a('EN/test')
+# print(model.a)
 
 
     
