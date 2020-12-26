@@ -51,8 +51,6 @@ class HMM(object):
             for element in list(zip(sentence, sentence[1:])): 
                 lsOfCurrNextStates.append(element)
         
-        # print('lsOfCurrNextStates', lsOfCurrNextStates)
-        
         countCurrNext = [[0 for i in range(len(self.stateSet))] for i in range(len(self.stateSet))]
         countCurr = [0 for i in range(len(self.stateSet))]
 
@@ -61,9 +59,6 @@ class HMM(object):
             nexIndex = self.stateSet.index(nex.strip())
             countCurrNext[currIndex][nexIndex] += 1
             countCurr[currIndex] += 1
-        
-        # print('countCurr', countCurr)
-        # print('countCurrNext before', countCurrNext)
 
         for i in range(len(self.stateSet)):
             for j in range(len(self.stateSet)):
@@ -71,8 +66,6 @@ class HMM(object):
                     countCurrNext[i][j] = 0 
                 else: 
                     countCurrNext[i][j] = countCurrNext[i][j]/countCurr[i]
-        
-        # print('countCurrNext after', countCurrNext)
         
         self.a = countCurrNext
         
@@ -132,12 +125,7 @@ class HMM(object):
             for currState in range(numStates):
                 arr = np.array([])
                 for prevState in range(numStates):
-                    print(prevState)
-                    print('pi', pi[prevState][position-1])
-                    print('a', self.a[prevState][currState])
-                    print('b', self.b[obsIndex][currState])
                     arr = np.append(arr, pi[prevState][position-1] * self.a[prevState][currState] * self.b[obsIndex][currState])
-                    print('arr', arr)
                 pi[currState][position] = np.max(arr)
                 parent[currState][position] = np.argmax(arr)
         
@@ -216,7 +204,7 @@ class HMM(object):
 
     def predictGlobal(self, file, k):
 
-        f = open("EN/dev.p3.out", "w")
+        f = open("EN/dev.p5.out", "w")
 
         obsPerSentence = ['0']
         for line in open(file, "r"):
@@ -227,8 +215,6 @@ class HMM(object):
 
                 if k == 1:
                     optimalStatels, obsPerSentence = self.viterbi(obsPerSentence)
-                    # print('optimalStatels',optimalStatels)
-                    # print('obsPerSentence', obsPerSentence)
                 else: 
                     optimalStatels, obsPerSentence = self.viterbi_top_k(obsPerSentence, k)
                 
